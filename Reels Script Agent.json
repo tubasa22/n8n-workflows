@@ -1,0 +1,196 @@
+{
+  "name": "Reels Script Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8d512246-9dbb-46d3-8265-84679891eb71",
+      "name": "Telegram Trigger",
+      "webhookId": "7fee428d-2af6-4fec-a650-d30f4b267e88",
+      "credentials": {
+        "telegramApi": {
+          "id": "Jo1PON2QMEUVeRI6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Role\n너는 캘리포니아(CA) 기반 15년 차 '재정 설계 전문가'이자 '에세이 작가'야. \n불필요한 미사여구는 빼고, 핵심 재정 인사이트만 담긴 릴스 스크립트를 JSON으로 생성해.\n\n## Constraints\n1. **No Hallucination**: 확인되지 않은 수익률, 이자율, 세금 수치는 절대 지어내지 마. 대신 \"전략적 자산 배분\", \"세액 공제\" 등 원칙을 강조해.\n2. **CA Context**: 캘리포니아의 높은 물가와 주거 환경을 고려한 현실적인 조언을 담아줘.\n3. **JSON Only**: 설명 없이 오직 아래 형식의 JSON만 출력해.\n\n## Output Format\n{\n  \"hook\": \"독자의 뒤통수를 때리는 짧고 강렬한 첫 문장\",\n  \"content\": [\n    \"전문가로서의 핵심 원칙 1\",\n    \"작가의 시선이 담긴 따뜻한 조언 2\",\n    \"지금 바로 실행 가능한 CA 현지 팁 3\"\n  ],\n  \"cta\": \"깔끔한 마무리 문구\",\n  \"visual\": \"신뢰감 있는 영상 구도 추천\"\n}\n\n## User Topic (From Telegram)\n{{ $node[\"Telegram Trigger\"].json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "df6e7847-49c0-4ac9-86b9-f6aa6e968993",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        240,
+        176
+      ],
+      "id": "cc78d2b4-6449-4faf-a101-9b168dcf3981",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "iv232yP0DvqiYqDp",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const output = item.json.output;\n  \n  // 1. hook (도입부)\n  let fullText = `${output.hook}\\n\\n`;\n  \n  // 2. content (본문 배열 합치기)\n  if (Array.isArray(output.content)) {\n    fullText += output.content.join('\\n');\n  }\n  \n  // 3. cta (맺음말)\n  fullText += `\\n\\n${output.cta}`;\n\n  // 결과를 새로운 필드 'ttsText'에 담아 반환\n  item.json.ttsText = fullText;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        0
+      ],
+      "id": "35976be3-6001-4b7e-8f59-e7987a8a6ab5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. 데이터 가져오기 (문자열일 경우를 대비해 파싱)\nlet rawData = $input.all()[0].json.output;\n\n// 만약 output이 문자열(String)로 들어왔다면 JSON 객체로 변환\nif (typeof rawData === 'string') {\n  try {\n    rawData = JSON.parse(rawData);\n  } catch (e) {\n    // 파싱 실패 시 에러 방지를 위해 빈 객체 처리\n    rawData = { content: [] };\n  }\n}\n\nconst results = [];\n\n// 2. Hook 추가\nif (rawData.hook) {\n  results.push({ json: { text: rawData.hook, type: 'hook' } });\n}\n\n// 3. Content 배열 분리 (가장 중요한 부분)\nif (rawData.content && Array.isArray(rawData.content)) {\n  rawData.content.forEach((line, index) => {\n    results.push({ json: { text: line, type: 'content', index: index } });\n  });\n}\n\n// 4. CTA 추가\nif (rawData.cta) {\n  results.push({ json: { text: rawData.cta, type: 'cta' } });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "25257305-f436-4092-bec6-55010ee575e8",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"={{ $json.text }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75\n  }\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1088,
+        0
+      ],
+      "id": "0c58fb78-0b5d-44de-936d-8a7e8f7a4bef",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niutatOLdXAzS5MQ",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "06775778-fe8b-4e35-b5aa-6f1ff52db526",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c6c7db12fc5c4b45387d3e63c704ebba8e8c2376e53c593366bf28f71b5a439"
+  },
+  "id": "MXyh3NjpJ193hCF1",
+  "tags": []
+}
