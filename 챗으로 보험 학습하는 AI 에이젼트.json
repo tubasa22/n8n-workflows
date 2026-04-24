@@ -1,0 +1,245 @@
+{
+  "name": "챗으로 보험 학습하는 AI 에이젼트",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -352,
+        -48
+      ],
+      "id": "d00752d9-573f-40da-a509-a5cf9d8699db",
+      "name": "When chat message received",
+      "webhookId": "2523514a-a4b4-4163-aaa9-42fd13763caa"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        160
+      ],
+      "id": "3e18b7c3-ca76-47ed-9e56-79023c8c0cc7",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        16
+      ],
+      "id": "593f3e09-262d-4f0a-931f-172169dd7d5d",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "content": "##채팅 기반으로 학습 하는 AI 에이젼트 노드 ",
+        "height": 784,
+        "width": 1280,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -480,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "bff27e28-0b91-420d-b8f3-5b0a8ab40d1a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        240
+      ],
+      "id": "7ff641a2-b86d-40e4-8d8c-3ef16adb5eb0",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        160
+      ],
+      "id": "a11432f1-4cb9-4591-a28c-511c736ed1d7",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "uORyTBoyotZTsuja",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "={{ $('Chat AI Agent ').item.json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        16
+      ],
+      "id": "22ec8bc1-e4cc-4745-a9a1-6800695617cd",
+      "name": "Chat",
+      "webhookId": "b3b37358-fcd8-4cdd-a0b8-b25a05943f48"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=당신은 Jaden의 미래 음성 에이전트를 위한 '지식 설계자'입니다.\n\n1. **상담 학습**: 고객의 질문인 \"{{ $json.chatInput }}\"을 분석하여, Jaden이 평소 고객의 거절을 어떻게 극복하는지, 전문 용어를 얼마나 쉽게 설명하는지 그 '패턴'을 추출하여 기록하십시오.\n2. **구어체 대응**: 나중에 음성으로 출력될 것을 고려하여, 답변은 딱딱한 문어체가 아닌 자연스러운 대화체(말투)로 생성하십시오.\n3. **지역 최적화**: Fullerton 등 캘리포니아 현지 보험 상담 시 발생하는 특이 사항(메디케어 가입 시기 등)을 우선적으로 반영하여 답변하십시오.\n4. **지식 축적**: 질문에 답변함과 동시에, 이 대화 내용을 나중에 참고할 수 있도록 핵심 정보를 요약하여 기억하십시오. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -96,
+        -48
+      ],
+      "id": "9ba68905-5d24-463d-94a1-1965a1e7b9f9",
+      "name": "Chat AI Agent "
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsLemonade",
+      "typeVersion": 1,
+      "position": [
+        272,
+        240
+      ],
+      "id": "72a87c42-c758-40de-935b-2dedb6a6e077",
+      "name": "Embeddings Lemonade",
+      "credentials": {
+        "lemonadeApi": {
+          "id": "NMLCtKIRInaADxmm",
+          "name": "Lemonade account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Chat AI Agent ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat AI Agent ",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store": {
+      "ai_vectorStore": [
+        []
+      ],
+      "main": [
+        [
+          {
+            "node": "Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chat AI Agent ",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat AI Agent ": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Lemonade": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58bb560a-3db1-4ece-9f48-8b0d8bf154de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d6acfc8cbe4f5d7357a279b461f8484cdf54ce1bf3500f5fa099ec85f18ad72"
+  },
+  "id": "QqAycykZzhYhmmU6",
+  "tags": []
+}
