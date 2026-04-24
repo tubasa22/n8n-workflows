@@ -1,0 +1,251 @@
+{
+  "name": "Reels Script and Voice",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=다음 주제를 바탕으로 인스타그램 릴스 스크립트를 작성합니다: {{ $json.topic }}\n\n[출력 형식 및 구성 원칙]\nJSON 형식을 따릅니다. \"full_script\"는 다음 서사 구조를 가집니다.\n1.  기 (1~3문장): 시청자의 재정적 불안이나 호기심을 자극하는 질문.\n2.  승 (4~7문장): 미국의 경제 상황 또는 보험/재정 상품의 핵심 원리 설명.\n3.  전 (8~12문장): 일반 저축과 다른 혜택 또는 사례 제시.\n4.  결 (13~16문장): 전문가의 조언과 CTA(행동 촉구).\n\n[작성 규칙]\n-   시점: 1인칭 남성 재정 전문가('나')의 말투.\n-   문장 길이: 공백 포함 30~40자.\n-   문장 개수: 총 13~16문장.\n-   구분자: 마침표(.), 물음표(?), 느낌표(!)만 사용.\n-   금지: 쉼표(,)는 필수적인 경우에만 사용. 짧은 감탄사, 괄호, 생각(' ') 묘사 금지.\n-   용어: 미국 금융 용어(IUL, 401k 등) 사용 시 맥락 설명.\n-   tags: 배열 대신 하나의 문자열 내 쉼표(,) 구분.\n\n[JSON 출력 형태]\n{\n  \"title\": \"시청자를 유혹하는 재정 정보 제목\",\n  \"full_script\": \"13~16개의 문장...\",\n  \"visual_direction\": \"영상 제스처 및 자막 위치 지침\",\n  \"tags\": \"미국보험, 재정설계, 은퇴준비, 세금절약, 자산관리\"\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "27bd88b3-18a5-4574-8d5d-adf5dcd95102",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        416,
+        192
+      ],
+      "id": "ba295b78-68e1-461b-a811-ee3c660dc049",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "uORyTBoyotZTsuja",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6d583c3-0881-49d4-8571-3003c3fc0b87",
+              "name": "topic",
+              "value": "= {{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "13a33b2d-6de1-4ef3-8479-b2864bef9e16",
+      "name": "Topic"
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const input = items[0].json.output;\n  // 정규식: { 로 시작해서 } 로 끝나는 가장 긴 부분을 찾음\n  const match = input.match(/\\{[\\s\\S]*\\}/);\n  \n  if (!match) throw new Error(\"JSON을 찾을 수 없습니다.\");\n  \n  return { json: JSON.parse(match[0]) };\n\n} catch (e) {\n  return { json: { error: \"파싱 실패\", raw: items[0].json.output } };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "ab444c87-7d47-4cc4-8c71-1660d64574dd",
+      "name": "Code in Java full script"
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const input = items[0].json;\n  let fullText = \"\";\n\n  // 1. 데이터가 이미 구조화되어 있는 경우 (예: full_script 필드가 있는 경우)\n  if (input.full_script) {\n    fullText = input.full_script;\n  } \n  // 2. 데이터가 raw라는 문자열로 들어온 경우 (파싱 필요)\n  else if (input.raw) {\n    let rawData = input.raw.replace(/[\\r\\n]+/g, \" \");\n    const match = rawData.match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      fullText = JSON.parse(match[0]).full_script;\n    } else {\n      fullText = rawData; // 매칭이 안 되면 원문을 그대로 사용\n    }\n  } else {\n    throw new Error(\"데이터를 찾을 수 없습니다. Input 필드를 확인하세요.\");\n  }\n\n  // 3. 문장 나누기 (공통 작업)\n  const sentences = fullText.match(/[^.?!]+[.?!](\\s|$)/g) || [fullText];\n  \n  return {\n    json: {\n      script_array: sentences.map(s => s.trim())\n    }\n  };\n} catch (e) {\n  return { \n    json: { \n      error: \"데이터 처리 실패\", \n      details: e.message \n    } \n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "7b737ea1-4243-4a28-b9ff-10f6a5f07618",
+      "name": "Code in JavaScript "
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "script_array",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "9311f844-27b7-4a22-821a-8d49b946709b",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3a5927db-3a19-4c28-b206-2e5aecd07fa6",
+      "name": "Telegram Trigger",
+      "webhookId": "e130fb85-3497-4949-84c5-4ddeed2a643c",
+      "credentials": {
+        "telegramApi": {
+          "id": "9NxQb0jJgSgniUul",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.script_array }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.5\n  }\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 5000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1392,
+        0
+      ],
+      "id": "3ea089a9-f521-4039-8c3f-59fb2cca4947",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Yqv6FJhWBBnSvkO8",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in Java full script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Java full script": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript ": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ae43b5c3-63fb-4747-ac34-264e4088a745",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d6acfc8cbe4f5d7357a279b461f8484cdf54ce1bf3500f5fa099ec85f18ad72"
+  },
+  "id": "p5jsDf8rvqWzzWv0",
+  "tags": []
+}
