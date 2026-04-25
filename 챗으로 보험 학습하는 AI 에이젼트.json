@@ -10,10 +10,10 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
-        -352,
-        -48
+        0,
+        160
       ],
-      "id": "d00752d9-573f-40da-a509-a5cf9d8699db",
+      "id": "82fedb98-03cc-47ee-b2fc-42ae21acf824",
       "name": "When chat message received",
       "webhookId": "2523514a-a4b4-4163-aaa9-42fd13763caa"
     },
@@ -24,10 +24,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        0,
-        160
+        400,
+        368
       ],
-      "id": "3e18b7c3-ca76-47ed-9e56-79023c8c0cc7",
+      "id": "d8a77ab0-c45a-4fb0-9f8f-afef1224ebfe",
       "name": "Simple Memory"
     },
     {
@@ -42,26 +42,26 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
       "typeVersion": 1.3,
       "position": [
-        272,
-        16
+        880,
+        -16
       ],
-      "id": "593f3e09-262d-4f0a-931f-172169dd7d5d",
+      "id": "a7f5d467-9957-405a-ba27-07978a224741",
       "name": "Simple Vector Store"
     },
     {
       "parameters": {
         "content": "##채팅 기반으로 학습 하는 AI 에이젼트 노드 ",
-        "height": 784,
-        "width": 1280,
+        "height": 848,
+        "width": 1440,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -480,
-        -192
+        -48,
+        -48
       ],
       "typeVersion": 1,
-      "id": "bff27e28-0b91-420d-b8f3-5b0a8ab40d1a",
+      "id": "b36e3095-7112-4829-ac5b-b2dd1360b392",
       "name": "Sticky Note"
     },
     {
@@ -71,10 +71,10 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1.1,
       "position": [
-        400,
-        240
+        912,
+        288
       ],
-      "id": "7ff641a2-b86d-40e4-8d8c-3ef16adb5eb0",
+      "id": "fd1d0ac1-94b7-4a8f-a8a4-fd486e54b320",
       "name": "Default Data Loader1"
     },
     {
@@ -85,14 +85,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        -160,
-        160
+        288,
+        368
       ],
-      "id": "a11432f1-4cb9-4591-a28c-511c736ed1d7",
+      "id": "665abaf6-3ce6-4ffa-9a80-d3342f1da8de",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
-          "id": "uORyTBoyotZTsuja",
+          "id": "GilunxQuQhYkOnEq",
           "name": "Groq account"
         }
       }
@@ -106,42 +106,105 @@
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.2,
       "position": [
-        576,
-        16
+        1136,
+        320
       ],
-      "id": "22ec8bc1-e4cc-4745-a9a1-6800695617cd",
+      "id": "7cca489e-ec37-47e0-a09d-21c4998999c4",
       "name": "Chat",
       "webhookId": "b3b37358-fcd8-4cdd-a0b8-b25a05943f48"
     },
     {
       "parameters": {
         "options": {
-          "systemMessage": "=당신은 Jaden의 미래 음성 에이전트를 위한 '지식 설계자'입니다.\n\n1. **상담 학습**: 고객의 질문인 \"{{ $json.chatInput }}\"을 분석하여, Jaden이 평소 고객의 거절을 어떻게 극복하는지, 전문 용어를 얼마나 쉽게 설명하는지 그 '패턴'을 추출하여 기록하십시오.\n2. **구어체 대응**: 나중에 음성으로 출력될 것을 고려하여, 답변은 딱딱한 문어체가 아닌 자연스러운 대화체(말투)로 생성하십시오.\n3. **지역 최적화**: Fullerton 등 캘리포니아 현지 보험 상담 시 발생하는 특이 사항(메디케어 가입 시기 등)을 우선적으로 반영하여 답변하십시오.\n4. **지식 축적**: 질문에 답변함과 동시에, 이 대화 내용을 나중에 참고할 수 있도록 핵심 정보를 요약하여 기억하십시오. "
+          "systemMessage": "당신은 메디케어 전문가 '제이든'입니다. 당신의 모든 지식은 사용자가 제공한 정보와 연결된 자료(Vector Store)에 근거해야 합니다.\n\n### ⚠️ 최우선 원칙\n- 모르는 정보는 솔직하게 모른다고 하거나 나중에 확인해 드리겠다고 하세요. \n- \"구독 서비스\", \"외부 업데이트\" 같은 허구의 시스템을 언급하지 마세요. (할루시네이션 방지)\n\n### 1. 언어 및 출력 규칙\n- 사용자의 언어에 맞춰 답변하되, 답변 마지막은 항상 '역질문'이나 '선택지 제공'으로 끝냅니다.\n- 답변은 최대 3문장 이내로 간결하게 작성하세요. 비유(월세 등)는 억지로 쓰지 마세요.\n\n### 2. 상담 프로세스\n- 정보 제공 전 반드시 65세 이상인지 확인하세요.\n- 사용자가 수정해준 정보가 있다면, \"알려주셔서 감사합니다\"라고 한 뒤 해당 내용을 즉시 반영하세요.\n\n### 3. 시스템 트리거\n- 정보를 새로 배웠거나 수정했을 때만 답변 맨 마지막 줄에 한국어로 `저장`을 붙이세요. 평소 인사에는 붙이지 않습니다."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -96,
-        -48
+        304,
+        160
       ],
-      "id": "9ba68905-5d24-463d-94a1-1965a1e7b9f9",
+      "id": "344016ba-d12d-4c17-a4b7-fcc9b6c3d539",
       "name": "Chat AI Agent "
     },
     {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.embeddingsLemonade",
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
       "typeVersion": 1,
       "position": [
-        272,
-        240
+        800,
+        288
       ],
-      "id": "72a87c42-c758-40de-935b-2dedb6a6e077",
-      "name": "Embeddings Lemonade",
+      "id": "2db5d390-4415-4063-93e5-22611e3e760e",
+      "name": "Embeddings HuggingFace Inference",
       "credentials": {
-        "lemonadeApi": {
-          "id": "NMLCtKIRInaADxmm",
-          "name": "Lemonade account"
+        "huggingFaceApi": {
+          "id": "5mRYZhCSLtbZuLtg",
+          "name": "Hugging Face account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour",
+              "minute": 10
+            }
+          ]
+        },
+        "authentication": "serviceAccount",
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/0/folders/1Znu_hon8HsC3Us5zKXiYFhPoKJVOjWip",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        528
+      ],
+      "id": "5acbe89b-610a-4a37-9f69-e986028e3307",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleApi": {
+          "id": "2SpK5wfhhDvtSBnL",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        448,
+        528
+      ],
+      "id": "eff65faa-70ca-4185-b010-ad4cbc0f1e56",
+      "name": "Download file",
+      "credentials": {
+        "googleApi": {
+          "id": "2SpK5wfhhDvtSBnL",
+          "name": "Google Drive account"
         }
       }
     }
@@ -171,9 +234,6 @@
       ]
     },
     "Simple Vector Store": {
-      "ai_vectorStore": [
-        []
-      ],
       "main": [
         [
           {
@@ -217,7 +277,7 @@
         ]
       ]
     },
-    "Embeddings Lemonade": {
+    "Embeddings HuggingFace Inference": {
       "ai_embedding": [
         [
           {
@@ -227,19 +287,51 @@
           }
         ]
       ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "Chat AI Agent ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
+    "binaryMode": "separate"
   },
-  "versionId": "58bb560a-3db1-4ece-9f48-8b0d8bf154de",
+  "versionId": "f5798e58-8fa2-4bb1-a154-6c6fa3fd17d9",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "2d6acfc8cbe4f5d7357a279b461f8484cdf54ce1bf3500f5fa099ec85f18ad72"
+    "instanceId": "57b44d97e8e0cef19f34df2e87d8fe72acf4b14149c50e4fb07cd5cf529a270d"
   },
-  "id": "QqAycykZzhYhmmU6",
+  "id": "6EjLxiPMGKJcCjae",
   "tags": []
 }
